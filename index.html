@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Socket.io</title>
+
+		<script   src="https://code.jquery.com/jquery-2.2.3.min.js"   integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo="   crossorigin="anonymous"></script>
+
+		<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+
+		<style>
+			span.userName{
+				padding: 5px;
+			}
+
+			span.counter{
+
+				padding:5px 10px;
+
+			}
+		</style>
+
+	</head>
+
+    <body>
+		<div class="container">
+			<h1>Identification !</h1>
+
+			<button id="btn" class="btn btn-default">Subscribe to chat !</button>
+
+			<br/>
+			<br/>
+			<div class="container">
+				<div id="chat-zone" class="row">
+					<h3>Chat here...</h3>
+					<input type="text" id="text" autofocus />
+					<button id="send" class="btn btn-default" onclick="setText()">send</button>
+					<span class="counter bg-danger"></span> people(s) in the conversation
+				</div>
+				<br/>
+				<div class="row" id="container-conv">
+				</div>
+                <div class="exit row">
+                    <button id="exit" class="btn btn-default">Log out</button>
+                </div>
+
+			</div>
+		</div>
+
+		<br/>
+		<br/>
+		<br/>
+
+
+
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            var listUser = [];
+
+            document.getElementById("chat-zone").style.display = "none"
+
+            var socket = io.connect('http://dublt01926.esri-holdings.com:8080');
+
+			socket.on("message", function(message){
+				console.log("message = " + message)
+			})
+			socket.on("newMsg", function(newMsg){
+				if(newMsg.user != currentUser && currentUser){
+
+					addMessagetoDom(newMsg.user, newMsg.text)
+				}
+			})
+			socket.on("foreignUser", function(foreignUser){
+				addMessagetoDom(foreignUser, "user-message");
+			})
+
+			socket.on("updateCounter", function(nbr){
+				$("span.counter").text(nbr)
+			})
+
+            socket.on("user-left", function(user){
+                addMessagetoDom(user, "user-message");
+            })
+
+			var currentUser;
+
+			document.getElementById("btn").onclick = function(){
+				var value = prompt("Enter your name");
+                if(value.trim()){
+                    currentUser = value;
+    				document.getElementById("btn").style.display = "none";
+    				document.getElementById("chat-zone").style.display = "block";
+    				socket.emit("newUser", value);
+                }
+				//socket.emit("msgName" , value);
+			}
+
+
+
+			//document.getElementById("send").onclick =
+			document.getElementById("text").addEventListener("keypress", function(e){
+				console.log(e)
+				if(e.charCode === 13) setText();
+			});
+
+			function setText(){
+
+				var value = document.getElementById("text").value;
+				document.getElementById("text").value = "";
+				if(value){
+					addMessagetoDom(currentUser, value);
+					socket.emit("newText" , {user: currentUser, text:value});
+				}
+
+				//alert(value)
+
+			}
+            // display message in chat
+			function addMessagetoDom (user, value){
+				if(value && value != "user-message"){
+					var userClass = (currentUser == user) ?  "bg-primary" :  "bg-success";
+					$( "<p><span class='userName " + userClass + "'>" + user + "</span> <span class='text'>" + value + "</span></p>" ).appendTo( "#container-conv" );
+				} else {
+                    if(user.left){
+                        $( "<p><em><b>" + user.name + "</b> has left the conversation</em></p>" ).appendTo( "#container-conv" );
+                    } else {
+                        $( "<p><em><b>" + user + "</b> has join the conversation</em></p>" ).appendTo( "#container-conv" );
+                    }
+				}
+			}
+
+            $("#exit").click(function(){
+               socket.emit("disconnect-user" ,  currentUser);
+            })
+
+			$( document ).ready(function() {
+				console.log( "ready!" );
+			});
+
+            // user close the tab
+            $(window).bind("beforeunload", function() {
+                if(currentUser){
+                    socket.emit("disconnect-user" ,  currentUser);
+                }
+            });
+            // user focus on tab
+            $(window).focus(function() {
+               if(currentUser){
+                    socket.emit("onblur", currentUser, "active")
+               }
+            });
+            // user is on another tab but did not close the tab
+            $(window).blur(function() {
+                if(currentUser){
+                    socket.emit("onblur", currentUser, "inactive")
+                }
+            });
+        </script>
+    </body>
+</html>
