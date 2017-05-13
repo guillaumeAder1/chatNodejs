@@ -6,8 +6,8 @@
         "ejs": "~2.1.4",
         "cookie-session": "~1.1.0",
         "body-parser": "~1.10.1",
-		"socket.io": "~1.4.6"
+        "socket.io": "~1.4.6"
     },
-    "author": "Mateo21 <mateo21@email.com>",
-    "description": "Un gestionnaire de todolist ultra basique"
+    "author": "Guillaume ader",
+    "description": "basic chat in Node js using socket io"
 }

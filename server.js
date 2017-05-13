@@ -4,7 +4,7 @@ var fs = require('fs');
 // Chargement du fichier index.html affich� au client
 var server = http.createServer(function(req, res) {
     fs.readFile('./index.html', 'utf-8', function(error, content) {
-        res.writeHead(200, {"Content-Type": "text/html"});
+        res.writeHead(200, { "Content-Type": "text/html" });
         res.end(content);
     });
 });
@@ -19,34 +19,34 @@ var nbrUser = 0;
 var userList = [];
 var conversation = [];
 
-io.sockets.on('connection', function (socket) {
+io.sockets.on('connection', function(socket) {
 
     console.log('Un client est connecte !');
-	socket.emit("message", "msg from server");
+    socket.emit("message", "msg from server");
 
 
-	socket.on("msgName", function(msgName){
-		console.log(msgName)
+    socket.on("msgName", function(msgName) {
+        console.log(msgName)
 
-	})
+    })
 
-	socket.on("newText", function(newText){
-		console.log(newText)
-		conversation.push(newText)
-		socket.broadcast.emit("newMsg", newText);
-	})
+    socket.on("newText", function(newText) {
+        console.log(newText)
+        conversation.push(newText)
+        socket.broadcast.emit("newMsg", newText);
+    })
 
-	socket.on("newUser", function(newUser){
-		nbrUser += 1;
-		socket.emit("updateCounter", nbrUser)
-		socket.broadcast.emit("updateCounter", nbrUser)
+    socket.on("newUser", function(newUser) {
+        nbrUser += 1;
+        socket.emit("updateCounter", nbrUser)
+        socket.broadcast.emit("updateCounter", nbrUser)
 
 
-		userList.push(newUser)
-		socket.broadcast.emit("foreignUser", newUser)
+        userList.push(newUser)
+        socket.broadcast.emit("foreignUser", newUser)
         console.log(userList)
-	})
-    socket.on("disconnect-user", function(user){
+    })
+    socket.on("disconnect-user", function(user) {
 
         console.log(user);
 
@@ -54,7 +54,7 @@ io.sockets.on('connection', function (socket) {
         socket.emit("updateCounter", nbrUser)
         socket.broadcast.emit("updateCounter", nbrUser)
 
-        if(userList.indexOf(user) != -1){
+        if (userList.indexOf(user) != -1) {
             var index = userList.indexOf(user);
             userList.splice(index, 1)
         }
@@ -69,7 +69,7 @@ io.sockets.on('connection', function (socket) {
         console.log(userList)
 
     })
-    socket.on("onblur", function(user, status){
+    socket.on("onblur", function(user, status) {
 
         console.log("user " + user + " is " + status)
     });
